@@ -1,5 +1,6 @@
 package com.ai.ips.common.docker;
 
+import com.ai.ips.common.msg.IpsResult;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 
@@ -74,6 +75,30 @@ public class DockerRegistryClientTest {
         DockerClient dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
         Info info = dockerClient.infoCmd().exec();
         System.out.print(info);
+    }
+
+
+    @Test
+    public void testPullImage() {
+        DockerClient dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
+        // 测试pull V2仓库
+        Registry registry = new Registry("10.20.16.214", "auth_user1", "123");
+
+
+        /**
+         * Create or modify /etc/docker/daemon.json on the client machine
+         *
+         *        { "insecure-registries":["myregistry.example.com:5000"] }
+         *       Restart docker daemon
+         *      sudo /etc/init.d/docker restart
+         */
+        // 测试下载V1仓库
+        registry = new Registry("10.1.245.236");
+        IpsResult result = DockerRegistryClient.pullImage(dockerClient, registry, "registry", "2.5.1");
+        System.out.println(result.toString());
+        // start pull the image 10.1.245.31:5000/registry imageTag =2.5.1
+        // IpsResult{result=false, errorMsg='Could not pull image: Digest: sha256:2bdc086dadf298fa91f8bf280aeca81b8f5e5910fa104bdba8b0919366eb4bad'}
+        // TODO 为什么提示下载失败？而查看机器上明明已经下载成功了 可能因为版本问题，V1和v2版本存储格式不一样？
     }
 
     /**

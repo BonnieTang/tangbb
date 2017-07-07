@@ -9,6 +9,7 @@ public class ImageInfo {
     private String imageId;
     private String tag;
     private long size;
+    private String desc;
 
     public ImageInfo() {}
 

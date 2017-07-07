@@ -90,6 +90,15 @@ public class Registry {
         this.version = version;
     }
 
+    /**
+     * 获取本仓库镜像的URL
+     * @param imageName
+     * @return
+     */
+    public String getRegistryImageURI(String imageName)
+    {
+        return  host + ":" + port + "/" + imageName ;
+    }
 
     /**
      * 获取仓库URI串
