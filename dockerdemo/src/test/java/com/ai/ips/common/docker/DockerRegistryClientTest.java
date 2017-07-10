@@ -2,11 +2,14 @@ package com.ai.ips.common.docker;
 
 import com.ai.ips.common.msg.IpsResult;
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.Info;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 /**
  * DockerRegistryClient Tester.
@@ -63,6 +66,18 @@ public class DockerRegistryClientTest {
 
     }
 
+    @Test
+    public void testGetImageTagsList() {
+        // 测试有认证的仓库
+        Registry registry = new Registry("10.20.16.214", "auth_user1", "123");
+        List<ImageInfo> info = DockerRegistryClient.getImageTagsList(registry, "tangbb");
+        System.out.println(info.toString());
+
+        registry = new Registry("10.1.245.236");
+        info = DockerRegistryClient.getImageTagsList(registry, "tangbb");
+        System.out.println(info.toString());
+    }
+
     /**
      * Method: initSimple()
      */
@@ -101,12 +116,48 @@ public class DockerRegistryClientTest {
         // TODO 为什么提示下载失败？而查看机器上明明已经下载成功了 可能因为版本问题，V1和v2版本存储格式不一样？
     }
 
+    @Test
+    public void testPushImage()
+    {
+        DockerClient dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
+        Registry registry = new Registry("10.20.16.214", "auth_user1", "123");
+        IpsResult result = DockerRegistryClient.pushImage(dockerClient,registry,"hello-world","latest");
+        System.out.println(result.toString());
+
+        dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
+        registry = new Registry("10.1.245.236");
+        result = DockerRegistryClient.pushImage(dockerClient,registry,"hello-world","latest");
+        System.out.println(result.toString());
+    }
+
+    @Test
+    public void testListImageInfoFromLocal()
+    {
+        DockerClient dockerClient = null;
+        List<Image> images = null;
+//        // 测试默认docker client
+//        images = DockerRegistryClient.listImageInfoFromLocal();
+//        System.out.println(images.toString());
+        // 此时报dockerClient空指针异常，java.lang.NullPointerException
+        // 测试指定docker client
+        dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
+        images = DockerRegistryClient.listImageInfoFromLocal(dockerClient);
+        System.out.println(images.toString());
+    }
+    @Test
+    public void testDeleteImageFromLocal() {
+        DockerClient dockerClient = DockerRegistryClient.initSimple("tcp://10.1.245.236:2375");
+        String imagesId = "10.1.245.31:5000/registry:2.5.1";
+        boolean result = DockerRegistryClient.deleteImageFromLocal(dockerClient,imagesId);
+        System.out.println("Delete " + imagesId + " " + result);
+    }
+
     /**
      * Method: main(String[] args)
      */
     @Test
     public void testMain() throws Exception {
-//TODO: Test goes here... 
+//TODO: Test goes here...
     }
 
 

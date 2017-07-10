@@ -28,11 +28,11 @@ public class Registry {
     private String username = "";
     private String password;
     private String email = "";
-    private String version =  DefaultVersion;;
+    private String version = DefaultVersion;
+    ;
 
     /**
      * 无密码访问的仓库,默认端口5000
-     * @param host
      */
     public Registry(String host) {
         this.host = host;
@@ -40,6 +40,7 @@ public class Registry {
 
     /**
      * 无密码访问的仓库
+     *
      * @param host 10.1.2.4
      * @param port 5000
      */
@@ -50,9 +51,6 @@ public class Registry {
 
     /**
      * 有密码访问仓库，默认端口5000
-     * @param host
-     * @param username
-     * @param password
      */
     public Registry(String host, String username, String password) {
         this.host = host;
@@ -62,10 +60,6 @@ public class Registry {
 
     /**
      * 有密码访问的仓库
-     * @param host
-     * @param port
-     * @param username
-     * @param password
      */
     public Registry(String host, int port, String username, String password) {
         this.host = host;
@@ -76,11 +70,6 @@ public class Registry {
 
     /**
      * 指定版本的有密码访问的仓库
-     * @param host
-     * @param port
-     * @param username
-     * @param password
-     * @param version
      */
     public Registry(String host, int port, String username, String password, String version) {
         this.host = host;
@@ -93,41 +82,58 @@ public class Registry {
     /**
      * 获取本仓库镜像的URL
      * @param imageName
-     * @return
+     * @return 10.1.234.246:5000/tomcat
      */
-    public String getRegistryImageURI(String imageName)
-    {
-        return  host + ":" + port + "/" + imageName ;
+    public String getRegistryImageURI(String imageName) {
+        return host + ":" + port + "/" + imageName;
     }
 
     /**
-     * 获取仓库URI串
-     * @return
+     * 获取指定镜像的所有TAG信息
+     *
+     * @return 完整URL  http://10.1.245.236:5000/v2/tomcat/tags/list/
      */
-    public  String getUri()
+    public String getTagsListUri(String imageName) {
+        return "http://" + host + ":" + port + "/" + version + "/" + imageName + "/tags/list/";
+    }
+
+    /**
+     * 获取待传镜像的URL串
+     * @param imageName
+     * @param imageTag
+     * @return  10.1.245.236:5000/tomcat:8.0
+     */
+    public String getImagePushUri(String imageName,String imageTag)
     {
-       return  "http://" + host + ":" + port + "/" + version +"/";
+        return getRegistryImageURI(imageName) + ":" + imageTag;
+    }
+    /**
+     * 获取仓库URI串
+     * @return  http://10.1.245.236:5000/v2/
+     */
+    public String getUri() {
+        return "http://" + host + ":" + port + "/" + version + "/";
     }
 
     /**
      * 检查仓库状态
+     *
      * @return true false
      */
-    public boolean checkStatus()
-    {
+    public boolean checkStatus() {
         CommonRspMsg crm = null;
         String uri = getUri();
         long start = System.currentTimeMillis();
-        if(username == null || "".equals(username)){
-            crm = HttpClientUtil.executeGetRequest(uri,1000,1000,1000);
-        }else{
-            crm = HttpClientUtil.executeGetRequest(uri, username, password,1000,1000,1000);
+        if (username == null || "".equals(username)) {
+            crm = HttpClientUtil.executeGetRequest(uri, 1000, 1000, 1000);
+        } else {
+            crm = HttpClientUtil.executeGetRequest(uri, username, password, 1000, 1000, 1000);
         }
         System.out.println("查询仓库状态共耗时" + (System.currentTimeMillis() - start) + "ms");
-        if(crm.getResultCode() == ResultCode.ERC_SUCCESS.getValue()){
+        if (crm.getResultCode() == ResultCode.ERC_SUCCESS.getValue()) {
             return true;
-        }else{
-            LOG.error("#########check the registry:{} failed,the result is:{}",uri,crm.getResult());
+        } else {
+            LOG.error("#########check the registry:{} failed,the result is:{}", uri, crm.getResult());
             return false;
         }
     }
@@ -140,12 +146,11 @@ public class Registry {
 
     /**
      * 获取鉴权配置，username为空，则返回new AuthConfig()
-     * @return
      */
-    public AuthConfig getAuthConfig(){
+    public AuthConfig getAuthConfig() {
         LOG.debug("the username is {} ,the password is {}", username, password);
         AuthConfig authConfig = new AuthConfig();
-        if(username != null && !"".equals(username)){
+        if (username != null && !"".equals(username)) {
             authConfig.withUsername(username);
             authConfig.withPassword(password);
             authConfig.withRegistryAddress(getUri());
@@ -153,7 +158,6 @@ public class Registry {
         }
         return authConfig;
     }
-
 
 
     @Override
