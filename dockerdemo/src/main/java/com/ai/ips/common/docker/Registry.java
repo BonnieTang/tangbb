@@ -148,7 +148,7 @@ public class Registry {
      * 获取鉴权配置，username为空，则返回new AuthConfig()
      */
     public AuthConfig getAuthConfig() {
-        LOG.debug("the username is {} ,the password is {}", username, password);
+        LOG.info("the username is {} ,the password is {}", username, password);
         AuthConfig authConfig = new AuthConfig();
         if (username != null && !"".equals(username)) {
             authConfig.withUsername(username);

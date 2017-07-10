@@ -195,13 +195,13 @@ public class DockerRegistryClient {
      */
     public static IpsResult pushImage(DockerClient dockerClient, Registry registry, String imageName, String imageTag, boolean delFlag) {
         AuthConfig authConfig = registry.getAuthConfig();
-        String imageRegisryName = registry.getImagePushUri(imageName, imageTag); //仓库名称192.168.243.2:5000/helloword
-        LOG.info("###############start push the image {}:{} ###############", imageRegisryName, imageTag);
+        String repository = registry.getImagePushUri(imageName, imageTag); //仓库名称192.168.243.2:5000/helloword
+        LOG.info("###############start push the image {}:{} ###############", repository, imageTag);
         IpsResult result = new IpsResult();
         if (authConfig == null) {
             authConfig = new AuthConfig();
         }
-        PushImageResultCallback hpsRes = dockerClient.pushImageCmd(imageRegisryName).withTag(imageTag)
+        PushImageResultCallback hpsRes = dockerClient.pushImageCmd(repository).withTag(imageTag)
                 .withAuthConfig(authConfig).exec(new PushImageResultCallback());
         try {
             hpsRes.awaitSuccess();
@@ -212,7 +212,7 @@ public class DockerRegistryClient {
             return result;
         } finally {
             if (delFlag) {
-                deleteImageFromLocal(imageRegisryName);
+                deleteImageFromLocal(repository);
             }
         }
         LOG.info("###############push image success ###############");
