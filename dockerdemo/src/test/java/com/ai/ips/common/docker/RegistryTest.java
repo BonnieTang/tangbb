@@ -88,7 +88,12 @@ public class RegistryTest {
      */
     @Test
     public void testGetAuthConfig() throws Exception {
-//TODO: Test goes here... 
+        // 无认证
+        Registry registry = new Registry("10.1.245.31");
+        System.out.println(registry.getAuthConfig().toString());
+        // 有认证
+        registry = new Registry("10.20.16.214", "auth_user1", "123");
+        System.out.println(registry.getAuthConfig().toString());
     }
 
     /**

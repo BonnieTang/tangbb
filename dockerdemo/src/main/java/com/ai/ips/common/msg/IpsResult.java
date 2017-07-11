@@ -1,5 +1,7 @@
 package com.ai.ips.common.msg;
 
+import java.io.Serializable;
+
 /**
  * Desc:
  * User: TangBingbing
@@ -9,8 +11,8 @@ package com.ai.ips.common.msg;
  * Created by IntelliJ IDEA.
  * To change this template use File | Settings | File and Code Templates.
  */
-public class IpsResult {
-
+public class IpsResult implements Serializable {
+    private static final long serialVersionUID = 1L;
     private boolean result = false;
     private String errorMsg = "";
 

@@ -125,10 +125,84 @@ public class DockerRegistryClient {
         return list;
     }
 
+    /**
+     * 指定镜像打标签 docker tag imageId helloworld:3.0
+     *
+     * @param imageId  源镜像id registry:tag方式
+     * @param registry 镜像名称
+     * @param imageTag 镜像标签
+     * @param isDelete 是否删除源镜像标签
+     * @return true 成功，false 失败
+     */
+    public static boolean tagImageByImageID(String imageId, String registry, String imageTag, boolean isDelete) {
+        return tagImageByImageID(dockerClient, imageId, registry, imageTag, isDelete);
+    }
+
+
+
+    /**
+     * 指定镜像打标签 docker tag imageId helloworld:3.0
+     *
+     * @param dockerClient DockerClient
+     * @param imageId      源镜像id registry:tag方式
+     * @param registry     镜像名称
+     * @param imageTag     镜像标签
+     * @param isDelete     是否删除源镜像标签
+     * @return true 成功，false 失败
+     */
+    public static boolean tagImageByImageID(DockerClient dockerClient, String imageId, String registry, String imageTag, boolean isDelete) {
+        try {
+            LOG.info("the image imageid is {}, the new imageID is {}", imageId, registry + ":" + imageTag);
+            dockerClient.tagImageCmd(imageId, registry, imageTag).exec();
+            if (isDelete && !imageId.equals(registry + ":" + imageTag)) {
+                deleteImageFromLocal(dockerClient, imageId);
+            }
+        } catch (Exception e) {
+            LOG.error("tag failed {}", e);
+        }
+        return existImage(dockerClient, registry + ":" + imageTag);
+    }
+
+    /**
+     * 判断镜像是否存在
+     *
+     * @param imageId 镜像id：e4f26b47f651或者 image:tag方式
+     * @return true存在;false不存在
+     */
+    public static boolean existImage(String imageId) {
+        return existImage(dockerClient, imageId);
+    }
+
+    /**
+     * 判断镜像是否存在
+     */
+    public static boolean existImage(DockerClient dockerClient, String imageId) {
+        try {
+            dockerClient.inspectImageCmd(imageId).exec();
+            LOG.info("the image {} is exist ", imageId);
+            return true;
+        } catch (Exception e) {
+            LOG.error("the image {} is NotFound , No such image. {}", imageId, e.getMessage());
+            return false;
+        }
+    }
+
+
+    /**
+     *
+     * @param registry
+     * @param imageName
+     * @param imageTag
+     * @return
+     */
     public static IpsResult pullImage(Registry registry, String imageName, String imageTag) {
         return pullImage(dockerClient, registry, imageName, imageTag);
     }
 
+    public static IpsResult pullImage(DockerClient dockerClient,String srcImageUri) {
+        // TODO 还没测试
+        return pullImage(dockerClient, null, srcImageUri, null);
+    }
     /**
      * 下载指定仓库的指定镜像  pull image
      *
@@ -139,11 +213,8 @@ public class DockerRegistryClient {
      */
     public static IpsResult pullImage(DockerClient dockerClient, Registry registry, String imageName, String imageTag) {
         IpsResult result = new IpsResult();
-        String registryImageURI = registry.getRegistryImageURI(imageName);
-        AuthConfig authConfig = registry.getAuthConfig();
-        if (authConfig == null) {
-            authConfig = new AuthConfig();
-        }
+        String registryImageURI = registry != null ?  registry.getRegistryImageURI(imageName) : imageName;
+        AuthConfig authConfig = registry != null ?  registry.getAuthConfig() : new AuthConfig();
         LOG.info("############### start pull the image {}:{} ###############", registryImageURI, imageTag);
         System.out.println("start pull the image " + registryImageURI + " imageTag =" + imageTag);
         PullImageResultCallback res = dockerClient.pullImageCmd(registryImageURI).withTag(imageTag)
@@ -152,6 +223,7 @@ public class DockerRegistryClient {
             res.awaitSuccess();
         } catch (DockerClientException e) {
             LOG.debug("############### pull image failed , {} ###############", e.getMessage());
+
             result.setResult(false);
             result.setErrorMsg(e.getMessage());
             return result;
@@ -196,7 +268,7 @@ public class DockerRegistryClient {
     public static IpsResult pushImage(DockerClient dockerClient, Registry registry, String imageName, String imageTag, boolean delFlag) {
         AuthConfig authConfig = registry.getAuthConfig();
         String repository = registry.getImagePushUri(imageName, imageTag); //仓库名称192.168.243.2:5000/helloword
-        LOG.info("###############start push the image {}:{} ###############", repository, imageTag);
+        LOG.info("###############start push the image {} ###############", repository);
         IpsResult result = new IpsResult();
         if (authConfig == null) {
             authConfig = new AuthConfig();
@@ -212,7 +284,7 @@ public class DockerRegistryClient {
             return result;
         } finally {
             if (delFlag) {
-                deleteImageFromLocal(repository);
+                deleteImageFromLocal(dockerClient, repository);
             }
         }
         LOG.info("###############push image success ###############");
@@ -220,8 +292,26 @@ public class DockerRegistryClient {
         return result;
     }
 
+    public boolean pushImage(DockerClient dockerClient, String srcImageId, Registry dstRegistry, String dstImage, String dstTsgId) {
+        try{
+            // TODO
+            boolean result = false;
+            LOG.info("Step1: Tag the image");
+            pullImage(dockerClient,srcImageId);
+            String imageUrl = dstRegistry.getRegistryImageURI(dstImage);
+            result = tagImageByImageID(dockerClient,srcImageId,imageUrl,dstTsgId,false);
+            IpsResult rs =  pushImage(dockerClient,dstRegistry,dstImage,dstTsgId);
+        }catch (Exception e)
+        {
+
+        }
+        return false;
+    }
+
     /**
      * 查询指定主机本地所有Image信息
+     *
+     * @return List<Image>
      */
     public static List<Image> listImageInfoFromLocal(DockerClient dockerClient) {
         try {
@@ -231,13 +321,15 @@ public class DockerRegistryClient {
             }
             return imageList;
         } catch (Exception e) {
-            LOG.error("{}", e.getMessage());
+            LOG.error("list image info from local error {}", e.getMessage());
             return new ArrayList<Image>();
         }
     }
 
     /**
      * 查询本地所有Image信息
+     *
+     * @return List<Image>
      */
     public static List<Image> listImageInfoFromLocal() {
         return listImageInfoFromLocal(dockerClient);
@@ -245,27 +337,30 @@ public class DockerRegistryClient {
 
     /**
      * 查询指定本地镜像信息
+     *
+     * @return List<Image>
      */
-    public static Image listImageInfoFromLocal(DockerClient dockerClient, String imageId) {
+    public static List<Image> listImageInfoFromLocal(DockerClient dockerClient, String imageId) {
+        List<Image> result = new ArrayList<Image>();
         try {
             List<Image> imageList = dockerClient.listImagesCmd().exec();
             for (Image image : imageList) {
-                LOG.debug("listImageInfoFromLocal:imageId:" + imageId.substring(0, 12));
-                LOG.debug("listImageInfoFromLocal:imageId:" + image.getId().substring(0, 12));
-                if (image.getId().equals(imageId) || (imageId.substring(0, 12).equals(image.getId().substring(0, 12)))) {
-                    return image;
+                String sub = imageId.substring(0, 12);
+                // sha256:182810e6ba8c469a88d639695b38cfb213aa0120f673a5f55c60ae052b395246
+                String imageIdSub = image.getId().substring(7, 19);// 开头为sha256:
+                LOG.debug("listImageInfoFromLocal:imageId: {} <-->  list imageId{}", sub, imageIdSub);
+                if (image.getId().equals(imageId) || (sub.equals(imageIdSub))) {
+                    result.add(image);
                 }
             }
         } catch (Exception e) {
-            LOG.error("{}", e.getMessage());
+            LOG.error("listImageInfoFromLocal {}", e.getMessage());
         }
-        return null;
+        return result;
     }
 
     /**
      * 删除本地某个镜像 若存在容器依赖，则不删除
-     * @param imageId
-     * @return
      */
     public static boolean deleteImageFromLocal(String imageId) {
         return deleteImageFromLocal(dockerClient, imageId);
@@ -292,7 +387,7 @@ public class DockerRegistryClient {
             if (!containerRelyflag) {
                 dockerClient.removeImageCmd(imageId).withForce(true).exec();
             }
-            LOG.info("Delete the local image {} success. ",imageId);
+            LOG.info("Delete the local image {} success. ", imageId);
             return true;
         } catch (Exception e) {
             LOG.error("Delete local image {} failed {}", imageId, e.getMessage());
