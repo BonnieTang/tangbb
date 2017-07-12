@@ -80,6 +80,16 @@ public class Registry {
     }
 
     /**
+     * 获取仓库简写的地址（无http前缀）
+     * @return 10.1.245.31:5000
+     */
+    public String getSimpleUri()
+    {
+        return host + ":" + port ;
+    }
+
+
+    /**
      * 获取本仓库镜像的URL
      * @param imageName
      * @return 10.1.234.246:5000/tomcat
@@ -87,7 +97,6 @@ public class Registry {
     public String getRegistryImageURI(String imageName) {
         return host + ":" + port + "/" + imageName;
     }
-
     /**
      * 获取指定镜像的所有TAG信息
      *
