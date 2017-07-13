@@ -6,11 +6,9 @@ import com.ai.ips.common.util.HttpClientUtil;
 import com.github.dockerjava.api.model.AuthConfig;
 
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Desc: 仓库基本信息
+ * Desc: 容器仓库基本信息
  * User: TangBingbing
  * NT: tangbb/70288
  * Date：2017/7/7
@@ -18,9 +16,7 @@ import org.slf4j.LoggerFactory;
  * Created by IntelliJ IDEA.
  * To change this template use File | Settings | File and Code Templates.
  */
-public class Registry {
-    private static final Logger LOG = LoggerFactory.getLogger(Registry.class);
-
+public class DockerRegistry extends BaseRegistry {
     private final static int DefaultPort = 5000;
     private final static String DefaultVersion = "v2";
     private String host;
@@ -34,7 +30,7 @@ public class Registry {
     /**
      * 无密码访问的仓库,默认端口5000
      */
-    public Registry(String host) {
+    public DockerRegistry(String host) {
         this.host = host;
     }
 
@@ -44,7 +40,7 @@ public class Registry {
      * @param host 10.1.2.4
      * @param port 5000
      */
-    public Registry(String host, int port) {
+    public DockerRegistry(String host, int port) {
         this.host = host;
         this.port = port;
     }
@@ -52,7 +48,7 @@ public class Registry {
     /**
      * 有密码访问仓库，默认端口5000
      */
-    public Registry(String host, String username, String password) {
+    public DockerRegistry(String host, String username, String password) {
         this.host = host;
         this.username = username;
         this.password = password;
@@ -61,7 +57,7 @@ public class Registry {
     /**
      * 有密码访问的仓库
      */
-    public Registry(String host, int port, String username, String password) {
+    public DockerRegistry(String host, int port, String username, String password) {
         this.host = host;
         this.port = port;
         this.username = username;
@@ -71,7 +67,7 @@ public class Registry {
     /**
      * 指定版本的有密码访问的仓库
      */
-    public Registry(String host, int port, String username, String password, String email) {
+    public DockerRegistry(String host, int port, String username, String password, String email) {
         this.host = host;
         this.port = port;
         this.username = username;
@@ -84,7 +80,7 @@ public class Registry {
      *
      * @param email 缺省为：BDX_BDP_CI@asiainfo.com
      */
-    public Registry(String host, int port, String username, String password, String email, String version) {
+    public DockerRegistry(String host, int port, String username, String password, String email, String version) {
         this.host = host;
         this.port = port;
         this.username = username;
@@ -145,11 +141,6 @@ public class Registry {
     }
 
 
-    public String auth() {
-        String tmp = username + ":" + password;
-        return Base64.encodeBase64String(tmp.getBytes());
-    }
-
     /**
      * 获取鉴权配置，username为空，则返回new AuthConfig()
      */
@@ -167,7 +158,7 @@ public class Registry {
 
     @Override
     public String toString() {
-        return "Registry{" +
+        return "DockerRegistry{" +
                 "host='" + host + '\'' +
                 ", port=" + port +
                 ", username='" + username + '\'' +
