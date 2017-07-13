@@ -110,9 +110,12 @@ public class ImageInfo {
     @Override
     public String toString() {
         return "ImageInfo{" +
-                "imageName='" + imageName + '\'' +
+                "registry=" + registry.toString() +
+                ", imageName='" + imageName + '\'' +
                 ", imageId='" + imageId + '\'' +
                 ", tag='" + tag + '\'' +
+                ", size=" + size +
+                ", desc='" + desc + '\'' +
                 '}';
     }
 }

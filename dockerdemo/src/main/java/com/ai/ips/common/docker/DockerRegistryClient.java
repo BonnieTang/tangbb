@@ -185,37 +185,6 @@ public class DockerRegistryClient {
         }
     }
 
-
-//    /**
-//     * 下载指定仓库的指定镜像  pull image
-//     *
-//     * @param dockerClient 客户端连接
-//     * @param registry     仓库信息
-//     * @param imageName    镜像名字 eg:tomcat
-//     * @param imageTag     tag eg:1.0
-//     */
-//    public static IpsResult pullImage(DockerClient dockerClient, Registry registry, String imageName, String imageTag) {
-//        IpsResult result = new IpsResult();
-//        String registryImageURI = registry != null ? registry.getRegistryImageURI(imageName) : imageName + ":" + imageTag;
-//        AuthConfig authConfig = registry != null ? registry.getAuthConfig() : new AuthConfig();
-//        LOG.info("############### start pull the image {} ###############", registryImageURI);
-//        PullImageResultCallback res = dockerClient.pullImageCmd(registryImageURI).withTag(imageTag)
-//                .withAuthConfig(authConfig).exec(new PullImageResultCallback());
-//        try {
-//            res.awaitSuccess();
-//        } catch (DockerClientException e) {
-//            LOG.debug("############### pull image failed , {} ###############", e.getMessage());
-//
-//            result.setResult(false);
-//            result.setErrorMsg(e.getMessage());
-//            return result;
-//        }
-//        LOG.debug("############### pull image success ###############");
-//        result.setResult(true);
-//        return result;
-//    }
-
-
     /**
      *
      * @param imageInfo
@@ -241,7 +210,8 @@ public class DockerRegistryClient {
             res.awaitSuccess();
         } catch (DockerClientException e) {
             LOG.error("############### pull image failed , {} ###############", e.getMessage());
-            if (e.getMessage().startsWith("Could not pull image: Digest: sha256")) // TODO 解决API自身问题
+            // 为什么提示下载失败？而查看机器上明明已经下载成功了 可能因为版本问题，V1和v2版本存储格式不一样？
+            if (e.getMessage().startsWith("Could not pull image: Digest: sha256")) //  解决API自身问题
                 result.setResult(true);
             else
                 result.setResult(false);
@@ -344,30 +314,6 @@ public class DockerRegistryClient {
         }
         return result;
     }
-//
-//    public static IpsResult pushImage(DockerClient dockerClient, String srcImageId, String srcImageTag, Registry dstRegistry, String dstImage, String dstTsgId) {
-//        IpsResult result = new IpsResult();
-//        try {
-//            String srcUri = srcImageId + ":" + srcImageTag;
-//            LOG.info("******Step1: Pull the image {}", srcUri);
-//            IpsResult pullRs = pullImage(dockerClient, srcImageId, srcImageTag);
-//            LOG.info("******IpsResult ", pullRs.toString());
-//            String imageUrl = dstRegistry.getRegistryImageURI(dstImage);
-//            LOG.info("******Step2: Tag the image {} --> {}", srcImageId, imageUrl);
-//            boolean tag = tagImageByImageID(dockerClient, srcUri, dstImage, false);
-//            LOG.info("******Tag Result = {} ", result);
-//            LOG.info("******Step3: Push the image {} , {} ", dstRegistry.toString(), imageUrl + ":" + dstTsgId);
-//            IpsResult pushRs = pushImage(dockerClient, dstRegistry, dstImage, dstTsgId);
-//            LOG.info("******IpsResult ", pushRs.toString());
-//            result.setResult(pullRs.isResult() && tag && pushRs.isResult());
-//            result.setErrorMsg(pullRs.getErrorMsg() + "" + pushRs.getErrorMsg());
-//        } catch (Exception e) {
-//            LOG.error("pushImage failed {}", e.getMessage());
-//            result.setResult(false);
-//            result.setErrorMsg(e.getMessage());
-//        }
-//        return result;
-//    }
 
     /**
      * 查询指定主机本地所有Image信息

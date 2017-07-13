@@ -27,7 +27,7 @@ public class Registry {
     private int port = DefaultPort;
     private String username = "";
     private String password;
-    private String email = "";
+    private String email = "BDX_BDP_CI@asiainfo.com";
     private String version = DefaultVersion;
     ;
 
@@ -71,32 +71,47 @@ public class Registry {
     /**
      * 指定版本的有密码访问的仓库
      */
-    public Registry(String host, int port, String username, String password, String version) {
+    public Registry(String host, int port, String username, String password, String email) {
         this.host = host;
         this.port = port;
         this.username = username;
         this.password = password;
+        this.email = email;
+    }
+
+    /**
+     * 指定版本的有密码访问的仓库，含URL
+     *
+     * @param email 缺省为：BDX_BDP_CI@asiainfo.com
+     */
+    public Registry(String host, int port, String username, String password, String email, String version) {
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+        this.email = email;
         this.version = version;
     }
 
     /**
      * 获取仓库简写的地址（无http前缀）
+     *
      * @return 10.1.245.31:5000
      */
-    public String getSimpleUri()
-    {
-        return host + ":" + port ;
+    public String getSimpleUri() {
+        return host + ":" + port;
     }
-
 
     /**
-     * 获取本仓库镜像的URL
-     * @param imageName
-     * @return 10.1.234.246:5000/tomcat
+     * 获取仓库URI串（含http）
+     * 方便REST请求
+     *
+     * @return http://10.1.245.236:5000/v2/
      */
-    public String getRegistryImageURI(String imageName) {
-        return host + ":" + port + "/" + imageName;
+    public String getUri() {
+        return "http://" + host + ":" + port + "/" + version + "/";
     }
+
     /**
      * 获取指定镜像的所有TAG信息
      *
@@ -104,24 +119,6 @@ public class Registry {
      */
     public String getTagsListUri(String imageName) {
         return "http://" + host + ":" + port + "/" + version + "/" + imageName + "/tags/list/";
-    }
-
-    /**
-     * 获取待传镜像的URL串
-     * @param imageName
-     * @param imageTag
-     * @return  10.1.245.236:5000/tomcat:8.0
-     */
-    public String getImagePushUri(String imageName,String imageTag)
-    {
-        return getRegistryImageURI(imageName) + ":" + imageTag;
-    }
-    /**
-     * 获取仓库URI串
-     * @return  http://10.1.245.236:5000/v2/
-     */
-    public String getUri() {
-        return "http://" + host + ":" + port + "/" + version + "/";
     }
 
     /**
@@ -138,7 +135,7 @@ public class Registry {
         } else {
             crm = HttpClientUtil.executeGetRequest(uri, username, password, 1000, 1000, 1000);
         }
-        System.out.println("查询仓库状态共耗时" + (System.currentTimeMillis() - start) + "ms");
+        LOG.info("查询仓库状态共耗时" + (System.currentTimeMillis() - start) + "ms");
         if (crm.getResultCode() == ResultCode.ERC_SUCCESS.getValue()) {
             return true;
         } else {
@@ -157,7 +154,7 @@ public class Registry {
      * 获取鉴权配置，username为空，则返回new AuthConfig()
      */
     public AuthConfig getAuthConfig() {
-        LOG.info("the username is {} ,the password is {}", username, password);
+        LOG.info("the username is {} ,the password is *** ", username);
         AuthConfig authConfig = new AuthConfig();
         if (username != null && !"".equals(username)) {
             authConfig.withUsername(username);
@@ -168,13 +165,13 @@ public class Registry {
         return authConfig;
     }
 
-
     @Override
     public String toString() {
         return "Registry{" +
                 "host='" + host + '\'' +
                 ", port=" + port +
                 ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
                 ", version='" + version + '\'' +
                 '}';
     }

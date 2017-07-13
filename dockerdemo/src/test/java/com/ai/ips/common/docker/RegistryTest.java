@@ -10,15 +10,7 @@ import org.junit.After;
  * @author tangbb
  * @version 1.0
  */
-public class RegistryTest {
-
-    @Before
-    public void before() throws Exception {
-    }
-
-    @After
-    public void after() throws Exception {
-    }
+public class RegistryTest  extends BaseTest {
 
     /**
      * Method: getRegistryImageURI(String imageName)
@@ -35,23 +27,10 @@ public class RegistryTest {
     public void testGetTagsListUri() throws Exception {
         // 无认证
         Registry registry = new Registry("10.1.245.31");
-        System.out.println(registry.getTagsListUri("hello-world"));
+        LOG.info(registry.getTagsListUri("hello-world"));
         // 有认证
-        registry = new Registry("10.20.16.214", "auth_user1", "123");
-        System.out.println(registry.getTagsListUri("hello-world"));
-    }
-
-    /**
-     * Method: getImagePushUri(String imageName, String imageTag)
-     */
-    @Test
-    public void testGetImagePushUri() throws Exception {
-        // 无认证
-        Registry registry = new Registry("10.1.245.31");
-        System.out.println(registry.getImagePushUri("hello-world","latest"));
-        // 有认证
-        registry = new Registry("10.20.16.214", "auth_user1", "123");
-        System.out.println(registry.getImagePushUri("hello-world","latest"));
+        registry = new Registry("10.1.245.236", 5002,"user1", "123");
+        LOG.info(registry.getTagsListUri("hello-world"));
     }
 
     /**
@@ -61,10 +40,10 @@ public class RegistryTest {
     public void testGetUri() throws Exception {
         // 无认证
         Registry registry = new Registry("10.1.245.31");
-        System.out.println(registry.getUri());
+        LOG.info(registry.getUri());
         // 有认证
-        registry = new Registry("10.20.16.214", "auth_user1", "123");
-        System.out.println(registry.getUri());
+        registry = new Registry("10.1.245.236", 5002,"user1", "123");
+        LOG.info(registry.getUri());
     }
 
     /**
